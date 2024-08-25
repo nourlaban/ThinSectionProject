@@ -1,0 +1,150 @@
+{
+  "Framework" : "e.g. TensorFlow or PyTorch",
+  "ModelConfiguration" : "e.g. UNet or FasterRCNN",
+  "ModelType" : "e.g. ObjectDetection or ImageClassification",
+  "ModelFile" : "e.g. ./trained.model",
+  "Description" : "e.g. which data model was trained on, when, by whom, mAP, etc",
+  "ImageHeight" : 256,
+  "ImageWidth" : 256,
+  "ExtractBands" : "e.g. [0, 1, 2]",
+  "DataRange" : "e.g. [0.1, 1.0] (optional)",
+  "ModelPadding" : "e.g. 64 (optional)",
+  "BatchSize" : "e.g. 8 (optional)",
+  "PerProcessGPUMemoryFraction" : "e.g. 0.8 (optional)",
+  "MetaDataMode" : "Classified_Tiles",
+  "BlackenAroundFeature" : false,
+  "CropTileMode" : "Fixed_Size",
+  "ImageSpaceUsed" : "MAP_SPACE",
+  "MinCellSize" : {
+    "x" : 1,
+    "y" : 1,
+    "spatialReference" : {
+      "wkid" : null
+    }
+  },
+  "MaxCellSize" : {
+    "x" : 1,
+    "y" : 1,
+    "spatialReference" : {
+      "wkid" : null
+    }
+  },
+  "Classes" : [
+    {
+      "Value" : 1,
+      "Name" : "1",
+      "Color" : [
+        73,
+        220,
+        173
+      ]
+    },
+    {
+      "Value" : 2,
+      "Name" : "2",
+      "Color" : [
+        79,
+        20,
+        242
+      ]
+    },
+    {
+      "Value" : 4,
+      "Name" : "4",
+      "Color" : [
+        68,
+        64,
+        102
+      ]
+    },
+    {
+      "Value" : 100,
+      "Name" : "100",
+      "Color" : [
+        208,
+        107,
+        196
+      ]
+    }
+  ],
+  "InputRastersProps" : {
+    "RasterCount" : 1,
+    "SensorName" : "MultiSpectral",
+    "BandNames" : [
+      "Band_1",
+      "Band_2",
+      "Band_3",
+      "Band_4",
+      "Band_5",
+      "Band_6"
+    ]
+  },
+  "AllTilesStats" : [
+    {
+      "BandName" : "Band_1",
+      "Min" : 0,
+      "Max" : 255,
+      "Mean" : 89.105856723672829,
+      "StdDev" : 60.469047209494889
+    },
+    {
+      "BandName" : "Band_2",
+      "Min" : 0,
+      "Max" : 255,
+      "Mean" : 102.05866161446744,
+      "StdDev" : 67.423997088421814
+    },
+    {
+      "BandName" : "Band_3",
+      "Min" : 0,
+      "Max" : 252,
+      "Mean" : 88.055678965931932,
+      "StdDev" : 59.26146175444196
+    },
+    {
+      "BandName" : "Band_4",
+      "Min" : 1,
+      "Max" : 255,
+      "Mean" : 190.24363262256205,
+      "StdDev" : 49.704038332430933
+    },
+    {
+      "BandName" : "Band_5",
+      "Min" : 0,
+      "Max" : 255,
+      "Mean" : 188.33681464992085,
+      "StdDev" : 54.649137716605964
+    },
+    {
+      "BandName" : "Band_6",
+      "Min" : 0,
+      "Max" : 239,
+      "Mean" : 159.90548420459842,
+      "StdDev" : 61.200145183645439
+    }
+  ],
+  "WellKnownBandNames (FYI, these band names can be used in ExtractBands)" : [
+    "Red",
+    "Green",
+    "Blue",
+    "Infrared",
+    "CoastalBlue",
+    "Yellow",
+    "RedEdge",
+    "ShortWaveInfrared",
+    "NearInfrared",
+    "NearInfrared_1",
+    "NearInfrared_2",
+    "MidInfrared",
+    "MidInfrared_1",
+    "MidInfrared_2",
+    "Thermal",
+    "Thermal_1",
+    "Thermal_2",
+    "Panchromatic",
+    "PseudoRed",
+    "PseudoGreen",
+    "PseudoBlue",
+    "QA"
+  ]
+}

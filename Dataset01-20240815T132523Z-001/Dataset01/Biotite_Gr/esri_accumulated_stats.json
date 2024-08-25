@@ -1,0 +1,186 @@
+{
+  "Version" : 1,
+  "NumBands" : 6,
+  "TileSizeX" : 256,
+  "TileSizeY" : 256,
+  "NumClasses" : 4,
+  "NumTiles" : 35,
+  "NumTilesAsDouble" : 35,
+  "NextTileIndex" : 35,
+  "OutputFeatures" : true,
+  "MetaDataMode" : "Classified_Tiles",
+  "MinCellSize" : {
+    "x" : 1,
+    "y" : 1,
+    "spatialReference" : {
+      "wkid" : null
+    }
+  },
+  "MaxCellSize" : {
+    "x" : 1,
+    "y" : 1,
+    "spatialReference" : {
+      "wkid" : null
+    }
+  },
+  "Classes" : [
+    {
+      "ClassValue" : 1,
+      "ClassName" : "1",
+      "Color" : [
+        73,
+        220,
+        173
+      ]
+    },
+    {
+      "ClassValue" : 2,
+      "ClassName" : "2",
+      "Color" : [
+        79,
+        20,
+        242
+      ]
+    },
+    {
+      "ClassValue" : 4,
+      "ClassName" : "4",
+      "Color" : [
+        68,
+        64,
+        102
+      ]
+    },
+    {
+      "ClassValue" : 100,
+      "ClassName" : "100",
+      "Color" : [
+        208,
+        107,
+        196
+      ]
+    }
+  ],
+  "FeatureStats" : {
+    "NumClasses" : 4,
+    "NumImagesTotal" : 35,
+    "NumFeaturesTotal" : 216,
+    "NumImagesPerClass" : [
+      27,
+      33,
+      21,
+      17
+    ],
+    "NumFeaturesPerClass" : [
+      69,
+      60,
+      49,
+      38
+    ],
+    "NumFeaturesPerImage" : {
+      "Min" : 1,
+      "Max" : 19,
+      "Mean" : 6.1714285714285717,
+      "Sum" : 216,
+      "Count" : 35
+    },
+    "FeatureAreaPerClass" : [
+      {
+        "Min" : 0.12369706157314822,
+        "Max" : 47899.786208214369,
+        "Mean" : 5138.6119822101691,
+        "Sum" : 354564.22677250166,
+        "Count" : 69
+      },
+      {
+        "Min" : 0.77468688954939025,
+        "Max" : 58473.859489483642,
+        "Mean" : 8615.7247221952057,
+        "Sum" : 516943.48333171231,
+        "Count" : 60
+      },
+      {
+        "Min" : 0.03078101856428821,
+        "Max" : 44425.99565083842,
+        "Mean" : 6123.8618422900163,
+        "Sum" : 300069.23027221079,
+        "Count" : 49
+      },
+      {
+        "Min" : 1.0398469283719602,
+        "Max" : 26289.225922592774,
+        "Mean" : 3023.1578718278192,
+        "Sum" : 114879.99912945714,
+        "Count" : 38
+      }
+    ]
+  },
+  "InputRastersProps" : {
+    "RasterCount" : 1,
+    "SensorName" : "MultiSpectral",
+    "BandNames" : [
+      "Band_1",
+      "Band_2",
+      "Band_3",
+      "Band_4",
+      "Band_5",
+      "Band_6"
+    ]
+  },
+  "BandStatsState" : [
+    {
+      "Min" : 0,
+      "Max" : 255,
+      "Mean" : 0,
+      "StdDev" : 0,
+      "M1" : 89.105856723672829,
+      "M2" : 4687936446.4430285,
+      "Num" : 1282082
+    },
+    {
+      "Min" : 0,
+      "Max" : 255,
+      "Mean" : 0,
+      "StdDev" : 0,
+      "M1" : 102.05866161446744,
+      "M2" : 5828334307.1185884,
+      "Num" : 1282082
+    },
+    {
+      "Min" : 0,
+      "Max" : 252,
+      "Mean" : 0,
+      "StdDev" : 0,
+      "M1" : 88.055678965931932,
+      "M2" : 4502566994.3570175,
+      "Num" : 1282082
+    },
+    {
+      "Min" : 1,
+      "Max" : 255,
+      "Mean" : 0,
+      "StdDev" : 0,
+      "M1" : 190.24363262256205,
+      "M2" : 3167370118.6449118,
+      "Num" : 1282082
+    },
+    {
+      "Min" : 0,
+      "Max" : 255,
+      "Mean" : 0,
+      "StdDev" : 0,
+      "M1" : 188.33681464992085,
+      "M2" : 3828971129.3506069,
+      "Num" : 1282082
+    },
+    {
+      "Min" : 0,
+      "Max" : 239,
+      "Mean" : 0,
+      "StdDev" : 0,
+      "M1" : 159.90548420459842,
+      "M2" : 4801980243.8594875,
+      "Num" : 1282082
+    }
+  ]
+}
