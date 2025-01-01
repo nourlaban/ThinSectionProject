@@ -4,10 +4,9 @@ import rasterio
 from rasterio.transform import from_origin
 from rasterio.features import rasterize
 from rasterio.crs import CRS
-import os
 
 class Rasterizer:
-    def __init__(self, shapefile_path, dataset_path, output_raster_path, pixel_size=1):
+    def __init__(self, shapefile_path, dataset_path, output_raster_path, pixel_size=30):
         self.shapefile_path = shapefile_path
         self.dataset_path = dataset_path
         self.output_raster_path = output_raster_path
@@ -22,9 +21,9 @@ class Rasterizer:
 
     def load_vector_data(self):
         self.vector_data = gpd.read_file(self.shapefile_path)
-        # if self.vector_data.crs is None:
-        #     raise ValueError("The shapefile does not have a CRS defined.")
-        self.crs = None # self.vector_data.crs.to_string()
+        if self.vector_data.crs is None:
+            raise ValueError("The shapefile does not have a CRS defined.")
+        self.crs = self.vector_data.crs.to_string()
 
     def setup_raster_parameters(self):
         with rasterio.open(self.dataset_path, 'r') as dst:
@@ -36,7 +35,7 @@ class Rasterizer:
             self.nodata_mask = imdata == 0
             self.transform = from_origin(origin_x, origin_y, pixel_size_x, pixel_size_y)
 
-    def create_category_map(self, attribute='gridcode'):
+    def create_category_map(self, attribute='Classvalue'):
         if attribute not in self.vector_data.columns:
             raise ValueError(f"Attribute '{attribute}' not found in shapefile.")
         categories = self.vector_data[attribute].unique()
@@ -57,7 +56,7 @@ class Rasterizer:
             with rasterio.open(self.output_raster_path, 'w', **metadata) as dst:
                 out_image = rasterize(
                     [(geometry, self.category_map[value])
-                     for value, geometry in zip(self.vector_data['gridcode'], self.vector_data.geometry)],
+                     for value, geometry in zip(self.vector_data['Classvalue'], self.vector_data.geometry)],
                     out_shape=(self.height, self.width),
                     transform=self.transform,
                     fill=11,
@@ -82,15 +81,3 @@ def  generate_mask(shapefile, tif_file, mask_file):
     rasterizer.setup_raster_parameters()
     rasterizer.create_category_map()
     rasterizer.rasterize_vector_data()
-
-
-if __name__ == "__main__":
-    data_dir    = r'D:\work\ThinSections\newproject\6bands' 
-   
-   
-    tif_file   = os.path.join( data_dir, 'Boitite_Gr_clip.tif')
-    shapefile  = os.path.join(data_dir,'Boitite_Gr_clip.shp')    
-    mask_file  = os.path.join( data_dir,'Boitite_Gr_clip_new.tif')   
-
-    generate_mask(shapefile, tif_file, mask_file)
-

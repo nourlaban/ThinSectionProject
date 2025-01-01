@@ -922,7 +922,7 @@ def train_model_with_graph(model, train_loader, val_loader, device, num_classes,
     # Save the plot
     plt.savefig(f'metrics_{timestamp}.png')
 
-    plt.show()
+    # plt.show()
 
 # Example usage remains the same
 
@@ -1013,7 +1013,7 @@ def train_model_lr(model, train_loader, val_loader,result_dir, device, num_class
               f"Train Loss: {train_loss:.4f}, Train Acc: {train_accuracy:.4f}, "
               f"Val Loss: {val_loss:.4f}, Val Acc: {val_accuracy:.4f}")
     # Save the trained model
-    torch.save(model.state_dict(), os.path.join(result_dir,'trained_model_{timestamp}.pth'))
+    torch.save(model.state_dict(), os.path.join(result_dir,f'trained_model_{timestamp}.pth'))
     # Plotting loss
     plt.figure(figsize=(12, 5))
     plt.subplot(1, 2, 1)
@@ -1039,13 +1039,14 @@ def train_model_lr(model, train_loader, val_loader,result_dir, device, num_class
 
     # Save the plot with the timestamp
     plt.savefig( os.path.join(result_dir,f'metrics_{timestamp}.png'))
-    plt.show()
+    # plt.show()
 
 
 # Example usage with a different learning rate
 
-def predict_and_save(model, image_dir, output_dir, device, input_shape, num_classes):
+def predict_and_save(model, root_image_dir, output_dir, device, input_shape, num_classes):
     os.makedirs(output_dir, exist_ok=True)
+    image_dir =  os.path.join(root_image_dir,"all_tiles/images")
     image_files = sorted(os.listdir(image_dir))
     
     model.to(device)
