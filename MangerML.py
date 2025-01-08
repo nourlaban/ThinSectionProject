@@ -1,7 +1,7 @@
 import os 
 from datapreparation.generate_Dataset import generate_tif
 from datapreparation.generate_mask2 import generate_mask
-from machinelearning.classifypixel3 import classifypixel
+from machinelearning.classifypixel6 import train_classifier, classify_images
 from datapreparation.arctrain  import create_shapefile_from_mask
 
 import os
@@ -102,23 +102,40 @@ def main2():
     directory = r"D:\narssprojects\thensections\6bands\data\group1"  # Replace with your base directory path
     outputdir =  r"D:\narssprojects\thensections\output"
     experdir  =  "ML01"
-    experPath =  os.path.join(outputdir,experdir)
-    os.makedirs(experPath, exist_ok=True)
+    masks_dir =  "masks"
+    results_dir= "results"
+    masksPath =  os.path.join(outputdir,experdir,masks_dir)
+    os.makedirs(masksPath, exist_ok=True)
+
+    resPath =  os.path.join(outputdir,experdir,results_dir)
+    os.makedirs(resPath, exist_ok=True)
 
 
-    matching_pairs, tifs_without_shp, shps_without_tif = check_matching_files(directory)
+    matching_pairs, _, _ = check_matching_files(directory)
+    image_mask_pairs = []
     for tif_file, shapefile in matching_pairs:
         print(f"TIF: {tif_file}\nSHP: {shapefile}\n")
         filename_no_ext = os.path.splitext(os.path.basename(tif_file))[0]  # 'Biotite2_Gr_Clip'
-
-        mask_file  = os.path.join( experPath, filename_no_ext + '_mask.tif')
-        arcshapefile  = os.path.join(experPath,'arcExport_'+filename_no_ext+'.shp') 
-
-        classification_file=  os.path.join( experPath, filename_no_ext +  '_predicted_mask_rf') 
-    
+        mask_file  = os.path.join( masksPath, filename_no_ext + '_mask.tif')
+        image_mask_pairs.append((tif_file, mask_file))
         generate_mask(shapefile, tif_file, mask_file)
-        classifypixel(tif_file,mask_file,classification_file,train =True,classifier_prefix='rf')
-        create_shapefile_from_mask(mask_file,arcshapefile)
+    
+    # For training with multiple images
+    classifier_prefix='rf'
+    train =  False
+    if train:
+        accuracy = train_classifier(image_mask_pairs, resPath, classifier_prefix)
+        print(f"Training completed with accuracy: {accuracy}")
+    
+    classify_images(image_mask_pairs, resPath, classifier_prefix)
+    
+      
+
+  
+
+
+
+   
         
     
 
