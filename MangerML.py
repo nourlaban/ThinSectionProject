@@ -3,6 +3,11 @@ from datapreparation.generate_Dataset import generate_tif
 from datapreparation.generate_mask2 import generate_mask
 from machinelearning.classifypixel6 import train_classifier, classify_images
 from datapreparation.arctrain  import create_shapefile_from_mask
+import matplotlib.pyplot as plt
+import seaborn as sns
+import os
+from typing import Dict, Union
+import numpy as np
 
 import os
 from pathlib import Path
@@ -71,9 +76,6 @@ def check_matching_files(base_directory):
     
     return matching_pairs, tifs_without_shp, shps_without_tif
 
-
-
-
 def main1():
     data_dir    = r'D:\narssprojects\thensections\6bands\data\group1'      
     
@@ -96,12 +98,11 @@ def main1():
     classifypixel(tif_file,mask_file,classification_file,train =True,classifier_prefix='rf')
     create_shapefile_from_mask(mask_file,arcshapefile)
 
-
 def main2():
     # Example usage
-    directory = r"D:\narssprojects\thensections\6bands\data\group1"  # Replace with your base directory path
+    directory = r"D:\narssprojects\thensections\6bands\data\group12"  # Replace with your base directory path
     outputdir =  r"D:\narssprojects\thensections\output"
-    experdir  =  "ML01"
+    experdir  =  "ML05"
     masks_dir =  "masks"
     results_dir= "results"
     masksPath =  os.path.join(outputdir,experdir,masks_dir)
@@ -109,8 +110,12 @@ def main2():
 
     resPath =  os.path.join(outputdir,experdir,results_dir)
     os.makedirs(resPath, exist_ok=True)
+    
+    
+    train =  True	
+    classifier_prefix='rf'
 
-
+    
     matching_pairs, _, _ = check_matching_files(directory)
     image_mask_pairs = []
     for tif_file, shapefile in matching_pairs:
@@ -119,29 +124,33 @@ def main2():
         mask_file  = os.path.join( masksPath, filename_no_ext + '_mask.tif')
         image_mask_pairs.append((tif_file, mask_file))
         generate_mask(shapefile, tif_file, mask_file)
-    
-    # For training with multiple images
-    classifier_prefix='rf'
-    train =  False
+           
     if train:
-        accuracy = train_classifier(image_mask_pairs, resPath, classifier_prefix)
-        print(f"Training completed with accuracy: {accuracy}")
-    
+        metrics = train_classifier(image_mask_pairs, resPath, classifier_prefix)
+        print("\nTraining Results:")
+        print(f"Accuracy: {metrics['accuracy']:.4f}")
+        print(f"Precision: {metrics['precision']:.4f}") 
+        print(f"Recall: {metrics['recall']:.4f}")
+        print(f"F1 Score: {metrics['f1_score']:.4f}")
+
+        print("\nConfusion Matrix:")
+        print(metrics['confusion_matrix'])
+
+        # Create and save confusion matrix plot
+        plt.figure(figsize=(8,6))
+        sns.heatmap(metrics['confusion_matrix'], annot=True, fmt='d', cmap='Blues')
+        plt.title('Confusion Matrix')
+        plt.ylabel('True Label')
+        plt.xlabel('Predicted Label')
+
+        # Save plot
+        confusion_matrix_path = f"{resPath}/confusion_matrix_{classifier_prefix}.png"
+        plt.savefig(confusion_matrix_path, bbox_inches='tight', dpi=300)
+        plt.close()
+            
     classify_images(image_mask_pairs, resPath, classifier_prefix)
-    
-      
-
   
-
-
-
-   
-        
-    
-
-
-
-
+      
 if __name__ == "__main__":   
     main2()
     

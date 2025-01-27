@@ -926,7 +926,7 @@ def train_model_with_graph(model, train_loader, val_loader, device, num_classes,
 
 # Example usage remains the same
 
-def train_model_lr(model, train_loader, val_loader,result_dir, device, num_classes, epochs=10, learning_rate=1e-3):
+def train_model_lr(model, train_loader, val_loader,result_dir, device, num_classes,model_name = 'trained_model.pth', epochs=10, learning_rate=1e-3):
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     model.to(device)
     criterion = nn.CrossEntropyLoss()
@@ -1013,7 +1013,7 @@ def train_model_lr(model, train_loader, val_loader,result_dir, device, num_class
               f"Train Loss: {train_loss:.4f}, Train Acc: {train_accuracy:.4f}, "
               f"Val Loss: {val_loss:.4f}, Val Acc: {val_accuracy:.4f}")
     # Save the trained model
-    torch.save(model.state_dict(), os.path.join(result_dir,f'trained_model_{timestamp}.pth'))
+    torch.save(model.state_dict(), os.path.join(result_dir,model_name))
     # Plotting loss
     plt.figure(figsize=(12, 5))
     plt.subplot(1, 2, 1)
@@ -1087,7 +1087,7 @@ if __name__ == "__main__":
     # Example usage
     datadir = r'F:\Senaa\thensections\6bands\output_tiles'
     num_channels = 6  # Adjust based on your hyperspectral data
-    num_classes = 12  # Adjust based on your number of classes
+    num_classes = 17  # Adjust based on your number of classes
     input_shape = (64, 64)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')

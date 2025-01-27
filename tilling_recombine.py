@@ -105,6 +105,143 @@ def create_tiles(image_path, mask_path , tile_size, output_dir, prefix='tile', t
 
     print(f"Created {tile_count} tiles and map.txt.")
 
+
+def create_tiles2(image_path, mask_path, tile_size, output_dir, prefix='tile', train_ratio=0.7, val_ratio=0.15):
+    map_file = os.path.join(output_dir, 'map.txt')
+    transform_file = os.path.join(output_dir, 'transforms.txt')
+    
+    os.makedirs(output_dir, exist_ok=True)
+
+    for subset in ['train', 'val', 'test', 'all_tiles']:
+        images_dir = os.path.join(output_dir, subset, 'images')
+        masks_dir = os.path.join(output_dir, subset, 'masks')
+        os.makedirs(images_dir, exist_ok=True)
+        os.makedirs(masks_dir, exist_ok=True)
+
+    # First pass: analyze tile contents
+    tile_info = []
+    with rasterio.open(image_path) as src_img, rasterio.open(mask_path) as src_mask:
+        img_width = src_img.width
+        img_height = src_img.height
+        
+        for i in range(0, img_height, tile_size):
+            for j in range(0, img_width, tile_size):
+                window = Window(j, i, tile_size, tile_size)
+                mask_tile = src_mask.read(window=window)
+                
+                # Get unique classes in this tile
+                unique_classes = np.unique(mask_tile)
+                
+                # Store tile information
+                tile_info.append({
+                    'position': (i, j),
+                    'classes': set(unique_classes),
+                })
+
+    # Find all unique classes across all tiles
+    all_classes = set()
+    for tile in tile_info:
+        all_classes.update(tile['classes'])
+
+    # Sort tiles by number of unique classes they contain
+    tile_info.sort(key=lambda x: len(x['classes']), reverse=True)
+
+    # Select training tiles ensuring all classes are represented
+    train_tiles = []
+    remaining_tiles = []
+    classes_covered = set()
+
+    # First, select tiles that have rare classes
+    for tile in tile_info:
+        if not all_classes.issubset(classes_covered):
+            # If this tile contains any uncovered classes, add it to training
+            if any(c not in classes_covered for c in tile['classes']):
+                train_tiles.append(tile['position'])
+                classes_covered.update(tile['classes'])
+            else:
+                remaining_tiles.append(tile['position'])
+        else:
+            remaining_tiles.append(tile['position'])
+
+    # Fill remaining training set maintaining the desired ratio
+    total_tiles = len(tile_info)
+    num_train = int(total_tiles * train_ratio)
+    num_val = int(total_tiles * val_ratio)
+
+    # Add more tiles to training set if needed
+    remaining_train = num_train - len(train_tiles)
+    if remaining_train > 0:
+        train_tiles.extend(remaining_tiles[:remaining_train])
+        remaining_tiles = remaining_tiles[remaining_train:]
+
+    # Split remaining tiles into validation and test
+    val_tiles = remaining_tiles[:num_val]
+    test_tiles = remaining_tiles[num_val:]
+
+    # Process and save tiles
+    with open(map_file, 'w') as map_file, open(transform_file, 'w') as transform_file:
+        with rasterio.open(image_path) as src_img, rasterio.open(mask_path) as src_mask:
+            for i, j in train_tiles + val_tiles + test_tiles:
+                subset = 'train' if (i, j) in train_tiles else 'val' if (i, j) in val_tiles else 'test'
+                all_tiles = "all_tiles"
+
+                images_dir = os.path.join(output_dir, subset, 'images')
+                all_images_dir = os.path.join(output_dir, all_tiles, 'images')
+                masks_dir = os.path.join(output_dir, subset, 'masks')
+                all_masks_dir = os.path.join(output_dir, all_tiles, 'masks')
+
+                window = Window(j, i, tile_size, tile_size)
+                img_tile = src_img.read(window=window)
+                mask_tile = src_mask.read(window=window)
+
+                pad_height = max(0, tile_size - img_tile.shape[1])
+                pad_width = max(0, tile_size - img_tile.shape[2])
+
+                if pad_height > 0 or pad_width > 0:
+                    img_tile = np.pad(img_tile, ((0, 0), (0, pad_height), (0, pad_width)), mode='constant', constant_values=0)
+                    mask_tile = np.pad(mask_tile, ((0, 0), (0, pad_height), (0, pad_width)), mode='constant', constant_values=0)
+
+                transform = from_origin(
+                    src_img.transform.c + j * src_img.transform.a,
+                    src_img.transform.f + i * src_img.transform.e,
+                    src_img.transform.a,
+                    src_img.transform.e
+                )
+                
+                img_meta = src_img.meta.copy()
+                img_meta.update({
+                    'height': tile_size,
+                    'width': tile_size,
+                    'transform': transform
+                })
+
+                mask_meta = src_mask.meta.copy()
+                mask_meta.update({
+                    'height': tile_size,
+                    'width': tile_size,
+                    'transform': transform
+                })
+
+                img_tile_path = os.path.join(images_dir, f"{prefix}_img_{i}_{j}.tif")
+                img_tile_path2 = os.path.join(all_images_dir, f"{prefix}_img_{i}_{j}.tif")
+                with rasterio.open(img_tile_path, 'w', **img_meta) as dest:
+                    dest.write(img_tile)
+                with rasterio.open(img_tile_path2, 'w', **img_meta) as dest:
+                    dest.write(img_tile)
+
+                mask_tile_path = os.path.join(masks_dir, f"{prefix}_mask_{i}_{j}.tif")
+                mask_tile_path2 = os.path.join(all_masks_dir, f"{prefix}_mask_{i}_{j}.tif")
+                with rasterio.open(mask_tile_path, 'w', **mask_meta) as dest:
+                    dest.write(mask_tile)
+                with rasterio.open(mask_tile_path2, 'w', **mask_meta) as dest:
+                    dest.write(mask_tile)
+
+                map_file.write(f"{img_tile_path} {mask_tile_path}\n")
+                transform_file.write(f"{img_tile_path} {transform}\n")
+
+    print(f"Created {len(train_tiles) + len(val_tiles) + len(test_tiles)} tiles and map.txt.")
+
+
 def recombine_tiles(mask_path, predictedtiles_path, fullpredicted_path):
     mask_tile_files = glob(os.path.join(predictedtiles_path, f"*.tif"))
     

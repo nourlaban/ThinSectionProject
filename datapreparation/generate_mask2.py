@@ -74,7 +74,7 @@ def rasterize_vector_data(
     try:
         with rasterio.open(output_path, 'w', **metadata) as dst:
             out_image = rasterize(
-                [(geometry,11 if value == 100 else value)
+                [(geometry,0 if value == 100 else value)
                  for value, geometry in zip(vector_data['gridcode'], vector_data.geometry)],
                 out_shape=(raster_params.height, raster_params.width),
                 transform=raster_params.transform,
@@ -91,6 +91,7 @@ def rasterize_vector_data(
         print(f"An error occurred: {e}")
 
 def generate_mask(shapefile: str, tif_file: str, mask_file: str) -> None:
+    print(shapefile)
     vector_data = load_vector_data(shapefile)
     raster_params = get_raster_parameters(tif_file)
     category_maps = create_category_maps(vector_data)

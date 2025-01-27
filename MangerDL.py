@@ -1,12 +1,9 @@
-from generate_mask import * 
+from datapreparation.generate_mask2 import generate_mask
 from tilling_recombine import *
 from learnunet_pytorch import *
 
 
-def generate_masking(tif_file,shapefile,mask_file):   
-
-    generate_mask(shapefile, tif_file, mask_file)
-   
+ 
 def learnunet(output_directory,result_dir):
         # Example usage
     datadir = output_directory
@@ -58,20 +55,27 @@ def learnunet(output_directory,result_dir):
 
 if __name__ == "__main__":
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    data_dir    = r'D:\narssprojects\thensections\6bands\data\group1'     
+    data_dir    = r'D:\narssprojects\thensections\6bands\data\group12'     
     tile_size   =  32
     num_channels = 6  # Adjust based on your hyperspectral data
-    num_classes = 12  # Adjust based on your number of classes
+    num_classes = 17  # Adjust based on your number of classes
+    
+    num_bat_size = 256
+    num_epochs  =  30
+    c_model_name = 'trained_model3.pth'
 
     temp_intermediate_dir = r'D:\narssprojects\thensections\6bands\intermediateResults'
     os.makedirs(temp_intermediate_dir, exist_ok=True)
 
     output_dir = r'D:\narssprojects\thensections\output'
-    experimemnt = 'a01'
+    experimemnt = 'a08'
+    
     experiment_output_dir = os.path.join(output_dir,experimemnt)
     os.makedirs(experiment_output_dir, exist_ok=True)
+    
     result_dir      =  os.path.join(experiment_output_dir, 'results')
     os.makedirs(result_dir, exist_ok=True)
+    
     output_directory = os.path.join(experiment_output_dir, 'output_tiles')
     os.makedirs(output_directory, exist_ok=True)
 
@@ -89,8 +93,9 @@ if __name__ == "__main__":
                 tif_file   = os.path.join(image_dir,tif_name+'.tif' ) 
                 shapefile  = os.path.join(maskshp_dir,"Vec_"+tif_name+'.shp' )
                 mask_file  = os.path.join( experiment_output_dir,tif_name + '_shpmask.tif')                  
-                generate_masking(tif_file,shapefile,mask_file)                   
-                create_tiles(tif_file, mask_file , tile_size, output_directory, prefix=imagename)           
+                
+                generate_mask(shapefile, tif_file,mask_file)                   
+                create_tiles2(tif_file, mask_file , tile_size, output_directory, prefix=tif_name)           
             
     def train_deep_learning():              
                   
@@ -102,8 +107,8 @@ if __name__ == "__main__":
     
         # Usage
         # unet_model = ResNetUNet_withBatch_dropout(n_channels=num_channels, n_classes=num_classes)  # Now works with any number of input channels
-        unet_model = ResNext101UNet(n_channels=num_channels, n_classes=num_classes)  # Now works with any number of input channels
-        #unet_model = ResNetUNet(n_channels=num_channels, n_classes=num_classes)  # Now works with any number of input channels
+        #unet_model = ResNext101UNet(n_channels=num_channels, n_classes=num_classes)  # Now works with any number of input channels
+        unet_model = ResNetUNet_withBatch_Attention(n_channels=num_channels, n_classes=num_classes)  # Now works with any number of input channels
 
 
 
@@ -129,17 +134,17 @@ if __name__ == "__main__":
             num_classes=num_classes,
             transform=Resize(input_shape)
         )
-        train_loader = DataLoader(train_dataset, batch_size=128, shuffle=True)
-        val_loader = DataLoader(val_dataset, batch_size=64, shuffle=False)  
+        train_loader = DataLoader(train_dataset, batch_size=num_bat_size, shuffle=True)
+        val_loader = DataLoader(val_dataset, batch_size=int(num_bat_size/2), shuffle=False)  
         ##train_model_lr(unet_model, train_loader, val_loader, device, num_classes, epochs=200)
-        train_model_lr(unet_model, train_loader, val_loader,result_dir, device, num_classes, epochs=30, learning_rate=5e-4)
-    # train_deep_learning()
+        train_model_lr(unet_model, train_loader, val_loader,result_dir, device, num_classes, epochs=num_epochs,model_name = c_model_name ,  learning_rate=5e-4)
+    
     def testmodel(imagename):       
         input_shape = (tile_size, tile_size)
         thinsectionpath_image = os.path.join(data_dir,"images",imagename+".tif")
         thinsectionpath_true  = os.path.join( experiment_output_dir, imagename+"_shpmask.tif")
                                              
-        model_path = os.path.join( experiment_output_dir,"results/trained_model_20250101_145356.pth")
+        model_path = os.path.join( result_dir,c_model_name)
 
         output_res_path          =  os.path.join( experiment_output_dir,"testmodels/tiles",imagename)
         predictedtiles_path      =  os.path.join( experiment_output_dir,"testmodels/results/predictedtiles",imagename)
@@ -147,31 +152,19 @@ if __name__ == "__main__":
 
         
         create_tiles(thinsectionpath_image, thinsectionpath_true , tile_size, output_res_path, prefix=imagename)
-        model = ResNext101UNet(n_channels=num_channels, n_classes=num_classes)
+        model = ResNetUNet_withBatch_Attention(n_channels=num_channels, n_classes=num_classes)
         model.load_state_dict(torch.load(model_path))
         predict_and_save(model, output_res_path, predictedtiles_path, device, input_shape, num_classes)
         recombine_tiles(thinsectionpath_true,predictedtiles_path, fullpredicted_path)     
     
-    imagename = "Chlorite2_after_biotite_Clip"
-    # generate_dataset()
-    # train_deep_learning()
-    testmodel(imagename)
-
     
+    generate_dataset()
+    train_deep_learning()
+    image_dir   =  os.path.join(data_dir,'images') 
+    for filename in os.listdir(image_dir):    
+            if filename.endswith(".tif"):
+                tif_name= os.path.splitext(filename)[0]
+                imagename   = os.path.join(tif_name) 
+                testmodel(imagename)
 
-    
-
-
-
-
-
-                
-            
-
-
-
-
-            
-
-
-            
+ 

@@ -3,7 +3,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score , precision_score, recall_score, f1_score, confusion_matrix
 from tqdm import tqdm
 import pickle
 from scipy.ndimage import gaussian_filter, binary_erosion, binary_dilation, label
@@ -35,7 +35,8 @@ class HyperspectralClassifier:
         self.profiles = []
         
         if classifier == 'rf':
-            self.model = RandomForestClassifier(n_estimators=100, random_state=42)
+            # self.model = RandomForestClassifier(n_estimators=20, random_state=42)
+            self.model = RandomForestClassifier(n_estimators=100, max_depth=10, min_samples_split=10, min_samples_leaf=5, random_state=42)
         elif classifier == 'svm':
             self.model = SVC(kernel='rbf', random_state=42)
         else:
@@ -94,10 +95,35 @@ class HyperspectralClassifier:
 
     def evaluate_model(self, X_test, y_test):
         try:
-            y_pred = self.model.predict(X_test)
+            y_pred = self.model.predict(X_test)        
+            # Calculate various metrics
             accuracy = accuracy_score(y_test, y_pred)
-            print(f"Model accuracy: {accuracy:.4f}")
-            return accuracy
+            precision = precision_score(y_test, y_pred, average='weighted')
+            recall = recall_score(y_test, y_pred, average='weighted') 
+            f1 = f1_score(y_test, y_pred, average='weighted')
+            
+            # Create confusion matrix
+            cm = confusion_matrix(y_test, y_pred)
+            
+            # Print metrics
+            print("Model Performance Metrics:")
+            print(f"Accuracy: {accuracy:.4f}")
+            print(f"Precision: {precision:.4f}")
+            print(f"Recall: {recall:.4f}")
+            print(f"F1 Score: {f1:.4f}")
+            print("\nConfusion Matrix:")
+            print(cm)
+            
+            # Return metrics as dictionary
+            metrics = {
+                'accuracy': accuracy,
+                'precision': precision,
+                'recall': recall,
+                'f1_score': f1,
+                'confusion_matrix': cm
+            }
+            
+            return metrics
         except Exception as e:
             print(f"Error during evaluation: {str(e)}")
             return None
@@ -129,6 +155,8 @@ class HyperspectralClassifier:
             print(f"Error during classification: {str(e)}")
             return None, None, None
 
+from tqdm import tqdm
+
 def train_classifier(image_mask_pairs, resPath, classifier_prefix='rf'):
     """
     Train the classifier using the provided image-mask pairs
@@ -136,12 +164,16 @@ def train_classifier(image_mask_pairs, resPath, classifier_prefix='rf'):
     classifier = HyperspectralClassifier(classifier=classifier_prefix)
     
     # Add all training data
+    print("Loading image-mask pairs...")
     for img_path, mask_path in image_mask_pairs:
-        print(f"Loading {img_path} and {mask_path}")
         classifier.add_image_mask_pair(img_path, mask_path)
     
     # Prepare and train the model
+    print("Preparing data...")
     classifier.prepare_data()
+    
+    # Split data
+    print("Splitting dataset...")
     X_train, X_test, y_train, y_test = train_test_split(
         classifier.X_combined, 
         classifier.y_combined, 
@@ -149,9 +181,13 @@ def train_classifier(image_mask_pairs, resPath, classifier_prefix='rf'):
         random_state=42
     )
     
+    # Train model
+    print("Training model...")
     if classifier.train(X_train, y_train):
         model_path = os.path.join(resPath, f'trainedmodel2_{classifier_prefix}.pkl')
         classifier.save_model(model_path)
+        
+        print("Evaluating model...")
         accuracy = classifier.evaluate_model(X_test, y_test)
         return accuracy
     return None
